@@ -23,33 +23,48 @@ title() {
 }
 
 set_rights() {
-  echo "Setting read and write rights for spotfiy directories."
+  
   SPOTIFY_PATH="/opt/spotify";
   SPOTIFY_APPS_PATH="/opt/spotify/Apps"
   
-  if [ -z "$(ls -lad $SPOTIFY_PATH | awk '/rw. /')" ]; then
+  SET_SPOTIFY_PATH="$(ls -lad $SPOTIFY_PATH | awk '/rw. /')";
+  SET_SPOTIFY_APPS_PATH="$(ls -lad $SPOTIFY_APPS_PATH | awk '/rw. /')";
+
+  if [ -z SET_SPOTIFY_PATH ]; then
+    echo "Setting read and write rights for Spotify $SPOTIFY_PATH";
     sudo chmod a+wr $SPOTIFY_PATH;
   fi;
 
-  if [ -z "$(ls -lad $SPOTIFY_APPS_PATH | awk '/rw. /')" ]; then
+  if [ -z SET_SPOTIFY_APPS_PATH ]; then
+    echo "Setting read and write rights for Spotify $SPOTIFY_APPS_PATH";
     sudo chmod a+wr $SPOTIFY_APPS_PATH -R;
   fi;
 };
+
+
+if [ -z "$(yay -Q spotify | awk '/spotify/')" ]; then
+  echo "Spotify is not installed. Install it with:";
+  echo "yay -Sy spotify";
+  exit;
+fi;
 
 if [ -z $SKIP_INSTALL ]; then
   title "------ INSTALLING SPICETIFY ------";
   yay -S spicetify-cli;
 fi;
 
-set_rights
+set_rights;
 
 title "------ INSTALLING SPICETIFY MARKETPLACE ------";
 
-if [ "$(ls -lad $MARKETPLACE_LOC)" ]; then
-  echo "Found a file at $MARKETPLACE_LOC, would you like to delete it to procede?";
+if [[ -d $MARKETPLACE_LOC || -f $MARKETPLACE_LOC ]]; then
+  echo "File found at $MARKETPLACE_LOC.";
+  echo "This could be a Marketplace installation or another file."
+  echo "Would you like to delete it to proceed?";
+
   while :
   do
-    echo "y/n: ";
+    echo -n "y/n: ";
     read answer
     
     if [[ $answer == "y" ]]; then
